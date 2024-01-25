@@ -1,0 +1,45 @@
+.data
+
+.code
+
+max_3:
+	sub r28, r27, r0, {C}		;compare r27 to r28
+	jl L1				;if r28 is less than r27
+	add r0, r0, r0			;NOPs, can not be removed, because we have to do the jump first, only if r28 is greater than r27, we can do the next step.
+	add r0, r28, r27			;put the value of r28 in r27
+L1: 
+	sub r29, r27, r0, {C}		;compare r27 to r29
+	jl L2				;if r29 is less than r27
+	add r0, r0, r0			;NOPs, can not be removed, because only after get r29 is larger than r27, it can be moved to r27
+	add r0, r29, r27
+L2:
+	add r0, r27, r2		;put the value of r27 in r2(global register)
+	ret (r31)0		;return 
+	add r0, r0, r0 		;NOPs can not be removed
+
+max_4:
+	add r0, r27, r11		;move r27 to r11, which is a lower registers, r11 is equal to r27 in max_3 function
+
+	add r0, r28, r12		;move r28 to r12, r12 is equal to r28 in max_3
+	add r0, r29, r13		;move r29 to r13, r13 is equal to r29 in max_3
+	callr max_3, r15		;call max_3 (int a, b, c) in max_3
+				;removed a NOPs, because the next step won't influence the call of max_3.
+	add r0, r13, r12		;move r13(c) in r12 
+	add r0, r1, r11		;move the result from max_3 to r11
+	add r0, r30, r13		;move r30 (111) in r13(c)
+	callr max_3, r15		;call max_c to calculate it again
+	add r0, r0, r0			;NOPs, can't be removed, because next step is return ,we have to do the calculation in max_3 first and then return.
+	ret (r31)0			;return to main
+	add r0, r0, r0			;NOPs can not be removed after return
+	
+
+
+.main
+	add r0, #100, r11		;a = 100 in r11--r27
+	add r0, #99, r12			;b = 99 in r12--r28
+	add r0, #43, r13			;c = 43 in r13--r29
+	add r0, #111, r14		;d = 111 in r14--r30
+	callr max_4			;call the max_4 function
+					;removed NOPs
+	add r0, r0, r1			;return 0	
+

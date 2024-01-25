@@ -1,0 +1,104 @@
+.data
+
+N dq 4
+buffer db 10 dup(0)
+
+.code
+
+my_sum4_wrapper PROC
+	mov rcx, N		;rcx is equal to 7
+	dec N			; N = N-1
+	mov rdx, N		; rdx is equal to 6
+	dec N			; N = N-1
+	mov r8, N		; r8 is equal to 5
+	dec N			; N = N-1
+	mov r9, N		; r9 is equal to 4
+	sub rsp, 40		; shadow space
+	call my_sum4		; call mu_sum4 function
+	add rsp, 40		; clean the stack
+	ret 0			; return to the caller
+
+my_sum4_wrapper ENDP
+
+
+my_sum4 PROC
+	push rbp			;push rbp in the stack
+	mov rbp,rsp		;move rsp to rbp, rsp point rbp
+	xor rax, rax		;set rax is 0
+	cmp rcx, 0		;compare rcx(a) to 0
+	jle return_func		;if rcx is less or equal to 0,return
+	
+	mov rax, rcx		;now rax is equal to a
+	dec rcx	              	;rcx = rcx -1
+	
+	cmp rdx, 0		; compare b to 0
+	jge calculate_b		; if greater or equal to 0, jump
+L1:
+	cmp r8, 0		;compare c to 0
+	jge calculate_c		; jump if greater or equal
+L2: 
+	cmp r9, 0		;compare r9 to 0
+	jge calculate_d		;jumo if equal or greater than 0
+	
+L3:
+	push rax			;push rax to the stack
+	sub  rsp, 40		;set the shadow space
+	call my_sum4		;call my_sum4 function again
+	add rax, [rbp - 8]	;add the value in rbp - 8 to rax
+	
+	add rsp, 48		;clean the satck
+
+return_func:
+	pop rbp			;callee clean the stack
+	ret 0			;return to the caller in main
+
+calculate_b:
+	
+	add rax, rdx		; add a and b
+	dec rdx			; decrease b
+	jmp L1			; jump bk
+	
+calculate_c:
+
+	add rax, r8		; add a, b and c
+	dec r8			; decrease c
+	jmp L2
+
+calculate_d:
+
+	add rax, r9		; add a, b, c and d
+	dec r9			; decrease d
+	jmp L3 			; jump bk
+
+my_sum4 ENDP
+
+_start:
+	sub rsp, 40		; set the shadow space
+	call my_sum4_wrapper	; call wrapper function
+	add rsp, 40		; clean the stack
+
+	mov rcx, OFFSET buffer	; put rcx in the buffer
+	add rcx, 10		; move it to the most right of the buffer, so can use ascii code to print it 
+
+
+ASCII:	
+	dec rcx            	; ascii printing method from last assignement
+        mov rbx, 10        
+     	xor rdx, rdx       
+     	div rbx            
+
+     	add rdx, 48        
+     	mov BYTE PTR [rcx], dl    
+
+    	test rax, rax      
+     	jnz  ASCII      
+	mov  rdx, 5
+
+	mov rax, 4		; print rax
+	mov rbx, 1
+	int      80h
+		
+	mov rax, 1
+	mov rbx, 0
+	int      80h
+end _start
